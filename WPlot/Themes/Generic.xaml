@@ -1,0 +1,20 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:WPlot">
+    <Style TargetType="{x:Type local:XYPlot}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:XYPlot}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="Black"
+                            BorderThickness="2">
+                        <Grid x:Name="mainGrid" Margin="-1">
+                            <Path x:Name="mainPath" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" StrokeLineJoin="Round"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

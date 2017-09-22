@@ -1,0 +1,112 @@
+﻿<Window x:Class="LabDataViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:LabDataViewer.ViewModel"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        Title="Mõõtmiste töötlemata tulemused" Height="720" Width="1280"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        >
+    <Grid d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}">
+        <DockPanel LastChildFill="True">
+            <TreeView Width="250" ItemsSource="{Binding DirectoryInfos}" DockPanel.Dock="Left">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type vm:DataExplorerItemViewModel}" ItemsSource="{Binding Path=SubDirectoryInfos}">
+                        <TextBlock Text="{Binding Path=Title}" />
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.Style>
+                    <Style TargetType="TreeView">
+                        <Setter Property="OverridesDefaultStyle"
+          Value="True" />
+                        <Setter Property="SnapsToDevicePixels"
+          Value="True" />
+                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
+          Value="Auto" />
+                        <Setter Property="ScrollViewer.VerticalScrollBarVisibility"
+          Value="Auto" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TreeView">
+                                    <Border Name="Border"
+                                            CornerRadius="1"
+                                            BorderThickness="1">
+                                        <Border.BorderBrush>
+                                            <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderBrush}}" />
+                                        </Border.BorderBrush>
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlLightBrush}}" />
+                                        </Border.Background>
+                                        <ScrollViewer Focusable="False"
+                                                      CanContentScroll="False"
+                                                      Padding="4">
+                                            <ItemsPresenter Margin="0,0,0,250" />
+                                        </ScrollViewer>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TreeView.Style>
+            </TreeView>
+            <TextBox IsReadOnly="True" DockPanel.Dock="Top" Text="{Binding OpenedFilePath}" FontFamily="Consolas" BorderThickness="0" Margin="0,2,0,2"/>
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                <Button Content="Salvesta" Margin="5" Command="{Binding Path=SyncOpenTextFileContentsToDiskCommand}" Width="80"/>
+                <Button Content="Loo parameetrite fail" Margin="0,5,5,5" Command="{Binding CreateParamsFileCommand}" Width="160"/>
+                <Button Content="Töötle kaust" Margin="0,5,5,5" Command="{Binding AnalyzeSignalSpectrumFolderCommand}" Width="80"/>
+                <Button Content="Algväärtusta graafiku teljed" Margin="0,5,5,5" Command="{Binding Path=ResetPlotAxesCommand}" Width="160" />
+            </StackPanel>
+            <Border BorderThickness="0,1,0,1" BorderBrush="Gray" DockPanel.Dock="Right" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                <Grid>
+                    <TextBox AcceptsReturn="True" 
+                         Text="{Binding Path=CurrentInfoText, UpdateSourceTrigger=PropertyChanged}" 
+                         FontFamily="Consolas"
+                         BorderThickness="0"
+                         TextWrapping="Wrap">
+                        <TextBox.InputBindings>
+                            <KeyBinding Gesture="Ctrl+S" Command="{Binding SyncOpenTextFileContentsToDiskCommand}" />
+                        </TextBox.InputBindings>
+                        <TextBox.Style>
+                            <Style TargetType="{x:Type TextBox}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFileOpen}" Value="True">
+                                        <Setter Property="IsReadOnly" Value="False"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsFileOpen}" Value="False">
+                                        <Setter Property="IsReadOnly" Value="True"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=IsPlotFileActive}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=IsPlotFileActive}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                    <oxy:PlotView x:Name="dataPlot" Model="{Binding Path=PlotModel}" DisconnectCanvasWhileUpdating="False">
+                        <oxy:PlotView.Style>
+                            <Style TargetType="{x:Type oxy:PlotView}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsPlotFileActive}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=IsPlotFileActive}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </oxy:PlotView.Style>
+                    </oxy:PlotView>
+                </Grid>
+            </Border>
+        </DockPanel>
+    </Grid>
+</Window>
