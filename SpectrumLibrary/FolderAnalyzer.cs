@@ -52,7 +52,7 @@ namespace SpectrumLibrary
             }
 
             spectrumRegions = SpectrumMetadata.ReadFromFile(path + "\\params.txt");
-            var bc = new BlockingCollection<Tuple<int, string>>();
+            var bc = new BlockingCollection<(int index, string data, double[] xData)>();
             var task = Task.Run(() => Parallel.ForEach(bc.GetConsumingEnumerable(), AnalyzeSpectrum));
 
             if (isZipped)
@@ -70,7 +70,7 @@ namespace SpectrumLibrary
                     {
                         //Spectrum spectrum = new Spectrum(index.Value, XYAsciiFileReader.ReadFileFirstColumnAsArray(spectrumFilePath, false, spectrumRegions.UseCommaFix));
                         //bc.Add(spectrum);
-                        bc.Add(Tuple.Create(index.Value, File.ReadAllText(spectrumFilePath)));
+                        bc.Add((index.Value, File.ReadAllText(spectrumFilePath), null));
                     }
                 }
             }
@@ -85,10 +85,12 @@ namespace SpectrumLibrary
             DoCleanup();
         }
 
-        private void ReadZipFile(string zipFilePath, BlockingCollection<Tuple<int, string>> bc)
+        private void ReadZipFile(string zipFilePath, BlockingCollection<(int index, string data, double[] xData)> bc)
         {
             using (var zipArchive = ZipFile.OpenRead(zipFilePath))
             {
+                var xData = ReadXDataFromZipArchiveIfPresent(zipArchive);
+
                 foreach (var entry in zipArchive.Entries)
                 {
                     if (entry.Name.EndsWith(".txt"))
@@ -100,13 +102,35 @@ namespace SpectrumLibrary
                             {
                                 using (var sr = new StreamReader(entryStream))
                                 {
-                                    bc.Add(Tuple.Create(index.Value, sr.ReadToEnd()));
+                                    bc.Add((index.Value, sr.ReadToEnd(), xData));
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+
+        private static double[] ReadXDataFromZipArchiveIfPresent(ZipArchive zipArchive)
+        {
+            double[] xData = null;
+            foreach (var entry in zipArchive.Entries)
+            {
+                if (entry.Name.EndsWith("xvalues.txt"))
+                {
+
+                    using (var entryStream = entry.Open())
+                    {
+                        using (var sr = new StreamReader(entryStream))
+                        {
+                            xData = XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(true, false, sr.ReadToEnd()).Select(xy => xy.Y).ToArray();
+                        }
+                    }
+                    break;
+                }
+            }
+
+            return xData;
         }
 
         private void WriteResultsInFile(string path)
@@ -155,9 +179,20 @@ namespace SpectrumLibrary
         //    }
         //}
 
-        private void AnalyzeSpectrum(Tuple<int, string> spectrumData)
+        private void AnalyzeSpectrum((int index, string dataAsText, double[] xData) data)
         {
-            var spectrum = new Spectrum(spectrumData.Item1, XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(false, spectrumRegions.UseCommaFix, spectrumData.Item2));
+            Spectrum spectrum;
+            if (data.xData == null)
+                spectrum = new Spectrum(data.index, XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(false, spectrumRegions.UseCommaFix, data.dataAsText));
+            else
+            {
+                var yData = XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(true, spectrumRegions.UseCommaFix, data.dataAsText);
+                for (int i = 0; i < data.xData.Length; i++)
+                {
+                    yData[i].X = data.xData[i];
+                }
+                spectrum = new Spectrum(data.index, yData);
+            }
 
             var parameters = SpectrumAnalysis.AnalyzeSpectrum(spectrum.Points, spectrumRegions);
             lock (syncRoot)
@@ -168,10 +203,9 @@ namespace SpectrumLibrary
 
         private int? GetSpectrumIndexFromPath(string path)
         {
-            int index;
             string indexString = path.Substring(path.LastIndexOf('\\') + 1);
             indexString = indexString.Substring(0, indexString.LastIndexOf('.'));
-            if (!int.TryParse(indexString, out index))
+            if (!int.TryParse(indexString, out int index))
             {
                 return null;
             }

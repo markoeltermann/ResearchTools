@@ -36,24 +36,28 @@ namespace SpectrumLibrary.GasScripting
 
         public double OxygenConcentration { get; set; }
 
+        public bool IncludesFlushLog { get; set; }
+
         public string GetScriptLines(ProgramStep nextStep, TimeSpan? timeFromStart = null)
         {
             string s = Environment.NewLine + "//";
             if (timeFromStart.HasValue)
             {
-                s += $" {timeFromStart.Value.TotalHours.ToString("0.00", Nfi)} h:";
+                s += $" {(int)Math.Floor(timeFromStart.Value.TotalHours)}:{timeFromStart.Value.Minutes}:{timeFromStart.Value.Seconds} ";
             }
 
-            s += $" Oxygen {OxygenConcentration.RoundToNDigits(3).ToString(Nfi)} %" + Environment.NewLine;
-            
+            s += $" oxygen {OxygenConcentration.RoundToNDigits(3).ToString(Nfi)} %" + Environment.NewLine;
+
 
             double oxygenConcentrationIndicator = (Math.Log(this.OxygenConcentration) - Math.Log(0.001)) / (Math.Log(100) - Math.Log(0.001)) * 50.0;
             int oxygenConcentationIndicatorBarCount = (int)Math.Round(oxygenConcentrationIndicator);
-            s += new string(Enumerable.Repeat('█', oxygenConcentationIndicatorBarCount).ToArray()) + Environment.NewLine;
+            //s += new string(Enumerable.Repeat('█', oxygenConcentationIndicatorBarCount).ToArray()) + Environment.NewLine;
 
             bool transitionToSmallMfc = nextStep != null && this.OxygenConcentration >= MidSmallMfcCrossoverConcentration && nextStep.OxygenConcentration < MidSmallMfcCrossoverConcentration;
             bool transitionToMidMfc = nextStep != null && this.OxygenConcentration < MidSmallMfcCrossoverConcentration && nextStep.OxygenConcentration >= MidSmallMfcCrossoverConcentration;
-            var actualDuration = (transitionToSmallMfc || transitionToMidMfc) ? Duration - new TimeSpan(0, 0, 30) : Duration;
+            transitionToMidMfc = transitionToMidMfc || (nextStep != null && this.OxygenConcentration >= 4 && nextStep.OxygenConcentration < 4);
+            bool transitionToLargeMfc = nextStep != null && this.OxygenConcentration < 4 && nextStep.OxygenConcentration >= 4;
+            var actualDuration = (transitionToSmallMfc || transitionToMidMfc || transitionToLargeMfc) ? Duration - new TimeSpan(0, 0, 30) : Duration;
 
             if (OxygenConcentration >= 4)
             {
@@ -91,6 +95,18 @@ namespace SpectrumLibrary.GasScripting
                 var nextOxygenFlowRate = nextStep.OxygenConcentration * 20;
                 s += $"mfc::setflow 4={nextOxygenFlowRate.ToString("0.000", Nfi)};";
                 s += $"wait::time 00:00:{Math.Min(30, Duration.Seconds)};";
+            }
+            if (transitionToLargeMfc)
+            {
+                var nextOxygenFlowRate = nextStep.OxygenConcentration * 2;
+                s += $"mfc::setflow 3={nextOxygenFlowRate.ToString("0.000", Nfi)};";
+                s += $"wait::time 00:00:{Math.Min(30, Duration.Seconds)};";
+            }
+
+            if (IncludesFlushLog)
+            {
+                var devices = new[] { "script::", "labmeter::", "mfc::", "valve::", "k2400::" };
+                s += string.Join("", devices.Select(d => d + "flushlog;"));
             }
 
             s = s.Replace(";", ";" + Environment.NewLine);

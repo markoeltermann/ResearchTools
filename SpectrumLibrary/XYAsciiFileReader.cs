@@ -102,11 +102,9 @@ namespace SpectrumLibrary
                 string[] pieces = line.Split('\t', ',');
                 if (pieces.Length >= 2)
                 {
-                    double x;
-                    double y;
-                    if (double.TryParse(pieces[0], NumberStyles.Float, numberFormat, out x))
+                    if (double.TryParse(pieces[0], NumberStyles.Float, numberFormat, out var x))
                     {
-                        if (double.TryParse(pieces[1], NumberStyles.Float, numberFormat, out y))
+                        if (double.TryParse(pieces[1], NumberStyles.Float, numberFormat, out var y))
                         {
                             result.Add(new XYPoint(x, y));
                         }

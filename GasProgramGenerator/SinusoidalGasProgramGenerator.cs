@@ -28,12 +28,21 @@ namespace GasProgramGenerator
             var result = new List<ProgramStep>();
 
             var timeFromStart = TimeSpan.Zero;
+            var timeFromLastFlush = TimeSpan.Zero;
 
             while (timeFromStart < duration)
             {
-                result.Add(new ProgramStep(new TimeSpan(0, 0, 20), GetOxygenConcentrationAt(timeFromStart)));
+                var stepDuration = new TimeSpan(0, 0, 20);
+                var step = new ProgramStep(stepDuration, GetOxygenConcentrationAt(timeFromStart));
+                result.Add(step);
 
-                timeFromStart += new TimeSpan(0, 0, 20);
+                timeFromStart += stepDuration;
+                timeFromLastFlush += stepDuration;
+                if (timeFromLastFlush >= new TimeSpan(0, 30, 0))
+                {
+                    step.IncludesFlushLog = true;
+                    timeFromLastFlush = TimeSpan.Zero;
+                }
             }
 
             return result;
@@ -53,8 +62,11 @@ namespace GasProgramGenerator
             var rawMin = -2.5;
             var rawMax = 2.5;
 
-            var minConcentration = 0.002;
-            var maxConcentation = 0.8;
+            //var minConcentration = 0.002;
+            //var maxConcentation = 0.8;
+
+            var minConcentration = 0.1;
+            var maxConcentation = 20;
 
             concentration -= rawMin;
             concentration /= (rawMax - rawMin);

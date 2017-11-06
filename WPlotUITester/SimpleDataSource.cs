@@ -17,7 +17,7 @@ namespace WPlotUITester
             }
         }
 
-        public event EventHandler Changed;
+        public event EventHandler Changed { add { } remove { } }
 
         public double GetX(int i)
         {

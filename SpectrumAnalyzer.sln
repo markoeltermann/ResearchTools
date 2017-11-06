@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabDataViewer", "LabDataVie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SifFileConverter", "SifFileConverter\SifFileConverter.csproj", "{9C27F4B3-BF58-4B5B-8762-1210E8542EE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsciiFileShortener", "AsciiFileShortener\AsciiFileShortener.csproj", "{078F9210-D71A-4A0F-8D08-7DBB419A0123}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecayDataAnalyzer", "DecayDataAnalyzer\DecayDataAnalyzer.csproj", "{41459D83-52D5-4136-8B83-B2096F2C8D17}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{3FEE485C-DFA2-4ADC-9870-62734417615A}"
@@ -36,6 +34,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GasProgramGeneratorTests", "GasProgramGeneratorTests\GasProgramGeneratorTests.csproj", "{3758ABCE-3A9F-427A-9D95-24C41D63618B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpectrumLibraryTests", "SpectrumLibraryTests\SpectrumLibraryTests.csproj", "{A5EE2D7F-F28F-4F7D-91E8-E70CD68715A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpectrumFolderSimplifier", "SpectrumFolderSimplifier\SpectrumFolderSimplifier.csproj", "{6DF4A232-90D4-4345-A408-D7103D500B52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,10 +63,6 @@ Global
 		{9C27F4B3-BF58-4B5B-8762-1210E8542EE0}.Debug|Any CPU.Build.0 = Debug|x86
 		{9C27F4B3-BF58-4B5B-8762-1210E8542EE0}.Release|Any CPU.ActiveCfg = Release|x86
 		{9C27F4B3-BF58-4B5B-8762-1210E8542EE0}.Release|Any CPU.Build.0 = Release|x86
-		{078F9210-D71A-4A0F-8D08-7DBB419A0123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{078F9210-D71A-4A0F-8D08-7DBB419A0123}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{078F9210-D71A-4A0F-8D08-7DBB419A0123}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{078F9210-D71A-4A0F-8D08-7DBB419A0123}.Release|Any CPU.Build.0 = Release|Any CPU
 		{41459D83-52D5-4136-8B83-B2096F2C8D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{41459D83-52D5-4136-8B83-B2096F2C8D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41459D83-52D5-4136-8B83-B2096F2C8D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -107,6 +103,10 @@ Global
 		{A5EE2D7F-F28F-4F7D-91E8-E70CD68715A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5EE2D7F-F28F-4F7D-91E8-E70CD68715A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5EE2D7F-F28F-4F7D-91E8-E70CD68715A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DF4A232-90D4-4345-A408-D7103D500B52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DF4A232-90D4-4345-A408-D7103D500B52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DF4A232-90D4-4345-A408-D7103D500B52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DF4A232-90D4-4345-A408-D7103D500B52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
