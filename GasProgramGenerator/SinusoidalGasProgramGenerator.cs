@@ -50,23 +50,19 @@ namespace GasProgramGenerator
 
         private double GetOxygenConcentrationAt(TimeSpan timeFromStart)
         {
-            var concentration = 0.0;
-            for (int i = 0; i < frequencies.Length; i++)
+            var concentration = frequencies.Zip(phases, (frequency, phase) =>
             {
-                var frequency = frequencies[i];
-                var phase = phases[i];
+                return Math.Pow(1 / frequency, 1.3) * Math.Sin(timeFromStart.TotalHours * (frequency) + phase);
+            }).Sum();
 
-                concentration += Math.Pow(1 / frequency, 1.5)  * Math.Sin(timeFromStart.TotalHours * (frequency) + phase);
-            }
-
-            var rawMin = -2.5;
-            var rawMax = 2.5;
+            var rawMin = -4.0;
+            var rawMax = 4.0;
 
             //var minConcentration = 0.002;
             //var maxConcentation = 0.8;
 
-            var minConcentration = 0.1;
-            var maxConcentation = 20;
+            var minConcentration = 1.0;
+            var maxConcentation = 10.0;
 
             concentration -= rawMin;
             concentration /= (rawMax - rawMin);
@@ -75,6 +71,11 @@ namespace GasProgramGenerator
             concentration += (Math.Log(minConcentration));
 
             concentration = Math.Exp(concentration);
+
+            if (concentration < minConcentration)
+                concentration = minConcentration;
+            else if (concentration > maxConcentation)
+                concentration = maxConcentation;
 
             return concentration;
 

@@ -24,7 +24,7 @@ namespace SpectrumLibrary
         private List<DataPoint> points;
         private AutoResetEvent endWaitHandle;
         private NumberFormatInfo numberFormat;
-        private SpectrumMetadata spectrumRegions;
+        private SpectrumMetadata spectrumMetadata;
 
         //public bool CacheInMemory
         //{
@@ -51,7 +51,7 @@ namespace SpectrumLibrary
                 //var zipArchive = ZipFile.OpenRead(zipFilePath.First());
             }
 
-            spectrumRegions = SpectrumMetadata.ReadFromFile(path + "\\params.txt");
+            spectrumMetadata = SpectrumMetadata.ReadFromFile(path + "\\params.txt");
             var bc = new BlockingCollection<(int index, string data, double[] xData)>();
             var task = Task.Run(() => Parallel.ForEach(bc.GetConsumingEnumerable(), AnalyzeSpectrum));
 
@@ -79,6 +79,33 @@ namespace SpectrumLibrary
             await task;
 
             points.Sort();
+
+            if (spectrumMetadata.IsNoiseFilteringEnabled)
+            {
+                var window = new (int listIndex, DataPoint p)[3];
+                for (int i = 1; i < points.Count - 1; i++)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+                        window[j] = (listIndex: i - 1 + j, p: points[i - 1 + j]);
+                    }
+
+                    if (points[i].Index >= 144144)
+                    {
+
+                    }
+
+                    //window.Sort((p1, p2) => p1.p.Value.ReRadiationIntensity.CompareTo(p2.p.Value.ReRadiationIntensity));
+
+                    var edgeDifference = Math.Log(window[0].p.Value.ReRadiationIntensity / window[2].p.Value.ReRadiationIntensity);
+                    if (Math.Abs(edgeDifference) < Math.Log(1.0 / 0.95))
+                    {
+                        var edgeAverage = (window[0].p.Value.ReRadiationIntensity + window[2].p.Value.ReRadiationIntensity) / 2.0;
+                        if (Math.Abs(window[1].p.Value.ReRadiationIntensity - edgeAverage) / edgeAverage > 0.1)
+                            points[window[1].listIndex].Value.ReRadiationIntensity = edgeAverage;
+                    }
+                }
+            }
 
             WriteResultsInFile(path + @"\analyzed.txt");
 
@@ -137,7 +164,7 @@ namespace SpectrumLibrary
         {
             using (StreamWriter sw = new StreamWriter(path, false))
             {
-                if (spectrumRegions.DefectRegionEnd == 0.0 && spectrumRegions.DefectRegionStart == 0.0)
+                if (spectrumMetadata.DefectRegionEnd == 0.0 && spectrumMetadata.DefectRegionStart == 0.0)
                 {
                     foreach (var point in points)
                     {
@@ -183,10 +210,10 @@ namespace SpectrumLibrary
         {
             Spectrum spectrum;
             if (data.xData == null)
-                spectrum = new Spectrum(data.index, XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(false, spectrumRegions.UseCommaFix, data.dataAsText));
+                spectrum = new Spectrum(data.index, XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(false, spectrumMetadata.UseCommaFix, data.dataAsText));
             else
             {
-                var yData = XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(true, spectrumRegions.UseCommaFix, data.dataAsText);
+                var yData = XYAsciiFileReader.ReadFileContentsFirstColumnAsArray(true, spectrumMetadata.UseCommaFix, data.dataAsText);
                 for (int i = 0; i < data.xData.Length; i++)
                 {
                     yData[i].X = data.xData[i];
@@ -194,7 +221,7 @@ namespace SpectrumLibrary
                 spectrum = new Spectrum(data.index, yData);
             }
 
-            var parameters = SpectrumAnalysis.AnalyzeSpectrum(spectrum.Points, spectrumRegions);
+            var parameters = SpectrumAnalysis.AnalyzeSpectrum(spectrum.Points, spectrumMetadata);
             lock (syncRoot)
             {
                 points.Add(new DataPoint(spectrum.Index, parameters));
@@ -209,6 +236,8 @@ namespace SpectrumLibrary
             {
                 return null;
             }
+            while (index < 0)
+                index += 1000000;
             return index;
         }
 
@@ -216,8 +245,8 @@ namespace SpectrumLibrary
         private SpectrumParameters AnalyzeFile(string path)
         {
 
-            var points = XYAsciiFileReader.ReadFileFirstColumnAsArray(path, false, spectrumRegions.UseCommaFix);
-            return SpectrumAnalysis.AnalyzeSpectrum(points, spectrumRegions);
+            var points = XYAsciiFileReader.ReadFileFirstColumnAsArray(path, false, spectrumMetadata.UseCommaFix);
+            return SpectrumAnalysis.AnalyzeSpectrum(points, spectrumMetadata);
         }
 
 

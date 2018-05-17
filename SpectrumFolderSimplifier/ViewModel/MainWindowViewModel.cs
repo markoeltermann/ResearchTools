@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SpectrumLibrary;
 using System.Globalization;
+using System.IO.Compression;
 
 namespace SpectrumFolderSimplifier.ViewModel
 {

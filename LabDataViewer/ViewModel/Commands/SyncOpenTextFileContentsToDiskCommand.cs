@@ -41,7 +41,7 @@ namespace LabDataViewer.ViewModel.Commands
             var newFileContents = viewModel.CurrentInfoText;
             try
             {
-                File.WriteAllText(filePath, newFileContents, Encoding.Default);
+                File.WriteAllText(filePath, newFileContents, Encoding.UTF8);
                 viewModel.IsFileContentsSyncedToDisk = true;
             }
             catch (IOException)

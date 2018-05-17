@@ -307,7 +307,7 @@ namespace LabDataViewer.ViewModel
 
             try
             {
-                var fileContents = File.ReadAllText(filePath, Encoding.Default);
+                var fileContents = File.ReadAllText(filePath, Encoding.UTF8);
                 OpenedFilePath = filePath;
                 SetSyncedCurrentInfoText(fileContents);
             }

@@ -72,6 +72,8 @@ namespace SpectrumLibrary.Spectrum
         [JsonProperty("isbaselineenabled")]
         public bool IsBaselineSubtractionEnabled { get; set; }
 
+        public bool IsNoiseFilteringEnabled { get; set; }
+
         public static SpectrumMetadata ReadFromFile(string filePath)
         {
             SpectrumMetadata sr = null;

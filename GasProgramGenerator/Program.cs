@@ -13,7 +13,7 @@ namespace GasProgramGenerator
 {
     class Program
     {
-
+        private const string ParametersFilePath = @"C:\Data\Research\Raw data\2017-11-22\gas_program_parameters.txt";
         private static NumberFormatInfo Nfi = CultureInfo.InvariantCulture.NumberFormat;
 
         static void Main(string[] args)
@@ -54,9 +54,10 @@ namespace GasProgramGenerator
             //    new ProgramStep(10, 0),
             //};
 
-            var randomProgramConfig = XYAsciiFileReader.ReadFileFirstColumn(@"C:\Data\Research\Raw data\2017_09_21\gas_program_parameters.txt");
+            var randomProgramConfig = XYAsciiFileReader.ReadFileFirstColumn(ParametersFilePath);
 
-            var generator = new SinusoidalGasProgramGenerator(randomProgramConfig.Select(xy => xy.X).ToArray(), randomProgramConfig.Select(xy => xy.Y).ToArray(), new TimeSpan(60, 0, 0));
+            var programDuration = new TimeSpan(50, 0, 0);
+            var generator = new SinusoidalGasProgramGenerator(randomProgramConfig.Select(xy => xy.X).ToArray(), randomProgramConfig.Select(xy => xy.Y).ToArray(), programDuration);
 
             var programSections = generator.GetProgramSteps();
 
@@ -74,11 +75,11 @@ namespace GasProgramGenerator
                 timeFromStart += step.Duration;
             }
 
-            using (var sw = new StreamWriter(@"C:\Data\GeneratedGasProgram.txt", false))
+            using (var sw = new StreamWriter(@"C:\Data\GeneratedGasProgramLabmeter.txt", false))
             {
                 sw.Write(script.ToString());
             }
-            using (var sw = new StreamWriter(@"C:\Data\GeneratedGasProgram.json", false))
+            using (var sw = new StreamWriter(@"C:\Data\GeneratedGasProgramMatcherInput.json", false))
             {
                 sw.Write(JsonConvert.SerializeObject(programSteps, Formatting.Indented));
             }
@@ -95,10 +96,19 @@ namespace GasProgramGenerator
                 }
             }
 
+            var bronkhorstGasProgramJson = JsonConvert.SerializeObject(programSteps.Select(step => new JsonScriptLine()
+            {
+                Sp1 = step.OxygenConcentration,
+                Sp2 = 0.0,
+                Sp3 = 100.0 - step.OxygenConcentration,
+                Time = step.Duration,
+            }), Formatting.Indented);
+            File.WriteAllText(@"C:\Data\GeneratedGasProgramBronkhorst.json", bronkhorstGasProgramJson);
+
             Console.WriteLine(script.ToString());
             Console.WriteLine($"Total duration = {programSteps.Sum(s => s.Duration.TotalHours)} hours.");
 
-            
+
 
             Console.ReadLine();
 
